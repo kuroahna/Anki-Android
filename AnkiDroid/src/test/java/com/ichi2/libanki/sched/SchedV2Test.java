@@ -1753,4 +1753,251 @@ public class SchedV2Test extends RobolectricTest {
         sched.answerCard(card, Consts.BUTTON_ONE);
         assertDoesNotThrow(col::undo);
     }
+
+    @Test
+    public void AnswerCard_WhenGivenRelearnCard_ShouldFuzzCorrectly() throws Exception {
+        Collection col = getColV2();
+        Note note = col.newNote();
+        note.setItem("Front", "one");
+        col.addNote(note);
+        Card c = note.cards().get(0);
+        c.setIvl(100);
+        c.setFactor(2500);
+        c.setDue(col.getSched().getToday());
+        c.setQueue(CARD_TYPE_REV);
+        c.setType(QUEUE_TYPE_REV);
+        c.flush();
+
+        col.reset();
+
+        // fail the card
+        c = getCard();
+        col.getSched().answerCard(c, 1);
+        assertEquals(CARD_TYPE_RELEARNING, c.getType());
+        assertEquals(QUEUE_TYPE_LRN, c.getQueue());
+        assertEquals(1, c.getIvl());
+
+        // Answer good
+        col.getSched().answerCard(c, 3);
+        assertEquals(CARD_TYPE_REV, c.getType());
+        assertEquals(QUEUE_TYPE_REV, c.getQueue());
+        assertEquals(1, c.getIvl());
+        assertEquals(col.getSched().getToday() + c.getIvl(), c.getDue());
+
+        // Answer good
+        col.getSched().answerCard(c, 3);
+        assertEquals(CARD_TYPE_REV, c.getType());
+        assertEquals(QUEUE_TYPE_REV, c.getQueue());
+        assertEquals(4, c.getIvl());
+        assertEquals(col.getSched().getToday() + c.getIvl(), c.getDue());
+
+        // Answer good
+        col.getSched().answerCard(c, 3);
+        assertEquals(CARD_TYPE_REV, c.getType());
+        assertEquals(QUEUE_TYPE_REV, c.getQueue());
+        assertEquals(11, c.getIvl());
+        assertEquals(col.getSched().getToday() + c.getIvl(), c.getDue());
+
+        // Answer good
+        col.getSched().answerCard(c, 3);
+        assertEquals(CARD_TYPE_REV, c.getType());
+        assertEquals(QUEUE_TYPE_REV, c.getQueue());
+        assertEquals(28, c.getIvl());
+        assertEquals(col.getSched().getToday() + c.getIvl(), c.getDue());
+    }
+
+    @Test
+    public void AnswerCard_WhenGiven2RelearnCards_ShouldFuzzCorrectly() throws Exception {
+        Collection col = getColV2();
+        Note note1 = col.newNote();
+        note1.setItem("Front", "one");
+        col.addNote(note1);
+        Card card1 = note1.cards().get(0);
+        card1.setIvl(100);
+        card1.setFactor(2500);
+        card1.setDue(col.getSched().getToday());
+        card1.setQueue(CARD_TYPE_REV);
+        card1.setType(QUEUE_TYPE_REV);
+        card1.flush();
+
+        Note note2 = col.newNote();
+        note2.setItem("Front", "two");
+        col.addNote(note2);
+        Card card2 = note2.cards().get(0);
+        card2.setIvl(100);
+        card2.setFactor(2500);
+        card2.setDue(col.getSched().getToday());
+        card2.setQueue(CARD_TYPE_REV);
+        card2.setType(QUEUE_TYPE_REV);
+        card2.flush();
+
+        col.reset();
+
+        // fail the card
+        card1 = getCard();
+        col.getSched().answerCard(card1, 1);
+        assertEquals(CARD_TYPE_RELEARNING, card1.getType());
+        assertEquals(QUEUE_TYPE_LRN, card1.getQueue());
+        assertEquals(1, card1.getIvl());
+
+        card2 = getCard();
+        col.getSched().answerCard(card2, 1);
+        assertEquals(CARD_TYPE_RELEARNING, card2.getType());
+        assertEquals(QUEUE_TYPE_LRN, card2.getQueue());
+        assertEquals(1, card2.getIvl());
+
+        // Answer good
+        col.getSched().answerCard(card1, 3);
+        assertEquals(CARD_TYPE_REV, card1.getType());
+        assertEquals(QUEUE_TYPE_REV, card1.getQueue());
+        assertEquals(1, card1.getIvl());
+        assertEquals(col.getSched().getToday() + card1.getIvl(), card1.getDue());
+
+        col.getSched().answerCard(card2, 3);
+        assertEquals(CARD_TYPE_REV, card2.getType());
+        assertEquals(QUEUE_TYPE_REV, card2.getQueue());
+        assertEquals(1, card2.getIvl());
+        assertEquals(col.getSched().getToday() + card2.getIvl(), card2.getDue());
+
+        // Answer good
+        col.getSched().answerCard(card1, 3);
+        assertEquals(CARD_TYPE_REV, card1.getType());
+        assertEquals(QUEUE_TYPE_REV, card1.getQueue());
+        assertEquals(4, card1.getIvl());
+        assertEquals(col.getSched().getToday() + card1.getIvl(), card1.getDue());
+
+        col.getSched().answerCard(card2, 3);
+        assertEquals(CARD_TYPE_REV, card2.getType());
+        assertEquals(QUEUE_TYPE_REV, card2.getQueue());
+        assertEquals(3, card2.getIvl());
+        assertEquals(col.getSched().getToday() + card2.getIvl(), card2.getDue());
+
+        // Answer good
+        col.getSched().answerCard(card1, 3);
+        assertEquals(CARD_TYPE_REV, card1.getType());
+        assertEquals(QUEUE_TYPE_REV, card1.getQueue());
+        assertEquals(11, card1.getIvl());
+        assertEquals(col.getSched().getToday() + card1.getIvl(), card1.getDue());
+
+        col.getSched().answerCard(card2, 3);
+        assertEquals(CARD_TYPE_REV, card2.getType());
+        assertEquals(QUEUE_TYPE_REV, card2.getQueue());
+        assertEquals(7, card2.getIvl());
+        assertEquals(col.getSched().getToday() + card2.getIvl(), card2.getDue());
+    }
+
+    @Test
+    public void AnswerCard_WhenGiven3RelearnCards_ShouldFuzzCorrectly() throws Exception {
+        Collection col = getColV2();
+        Note note1 = col.newNote();
+        note1.setItem("Front", "one");
+        col.addNote(note1);
+        Card card1 = note1.cards().get(0);
+        card1.setIvl(100);
+        card1.setFactor(2500);
+        card1.setDue(col.getSched().getToday());
+        card1.setQueue(CARD_TYPE_REV);
+        card1.setType(QUEUE_TYPE_REV);
+        card1.flush();
+
+        Note note2 = col.newNote();
+        note2.setItem("Front", "two");
+        col.addNote(note2);
+        Card card2 = note2.cards().get(0);
+        card2.setIvl(100);
+        card2.setFactor(2500);
+        card2.setDue(col.getSched().getToday());
+        card2.setQueue(CARD_TYPE_REV);
+        card2.setType(QUEUE_TYPE_REV);
+        card2.flush();
+
+        Note note3 = col.newNote();
+        note3.setItem("Front", "three");
+        col.addNote(note3);
+        Card card3 = note3.cards().get(0);
+        card3.setIvl(100);
+        card3.setFactor(2500);
+        card3.setDue(col.getSched().getToday());
+        card3.setQueue(CARD_TYPE_REV);
+        card3.setType(QUEUE_TYPE_REV);
+        card3.flush();
+
+        col.reset();
+
+        // fail the card
+        card1 = getCard();
+        col.getSched().answerCard(card1, 1);
+        assertEquals(CARD_TYPE_RELEARNING, card1.getType());
+        assertEquals(QUEUE_TYPE_LRN, card1.getQueue());
+        assertEquals(1, card1.getIvl());
+
+        card2 = getCard();
+        col.getSched().answerCard(card2, 1);
+        assertEquals(CARD_TYPE_RELEARNING, card2.getType());
+        assertEquals(QUEUE_TYPE_LRN, card2.getQueue());
+        assertEquals(1, card2.getIvl());
+
+        card3 = getCard();
+        col.getSched().answerCard(card3, 1);
+        assertEquals(CARD_TYPE_RELEARNING, card3.getType());
+        assertEquals(QUEUE_TYPE_LRN, card3.getQueue());
+        assertEquals(1, card3.getIvl());
+
+        // Answer good
+        col.getSched().answerCard(card1, 3);
+        assertEquals(CARD_TYPE_REV, card1.getType());
+        assertEquals(QUEUE_TYPE_REV, card1.getQueue());
+        assertEquals(1, card1.getIvl());
+        assertEquals(col.getSched().getToday() + card1.getIvl(), card1.getDue());
+
+        col.getSched().answerCard(card2, 3);
+        assertEquals(CARD_TYPE_REV, card2.getType());
+        assertEquals(QUEUE_TYPE_REV, card2.getQueue());
+        assertEquals(1, card2.getIvl());
+        assertEquals(col.getSched().getToday() + card2.getIvl(), card2.getDue());
+
+        col.getSched().answerCard(card3, 3);
+        assertEquals(CARD_TYPE_REV, card3.getType());
+        assertEquals(QUEUE_TYPE_REV, card3.getQueue());
+        assertEquals(1, card3.getIvl());
+        assertEquals(col.getSched().getToday() + card3.getIvl(), card3.getDue());
+
+        // Answer good
+        col.getSched().answerCard(card1, 3);
+        assertEquals(CARD_TYPE_REV, card1.getType());
+        assertEquals(QUEUE_TYPE_REV, card1.getQueue());
+        assertEquals(4, card1.getIvl());
+        assertEquals(col.getSched().getToday() + card1.getIvl(), card1.getDue());
+
+        col.getSched().answerCard(card2, 3);
+        assertEquals(CARD_TYPE_REV, card2.getType());
+        assertEquals(QUEUE_TYPE_REV, card2.getQueue());
+        assertEquals(3, card2.getIvl());
+        assertEquals(col.getSched().getToday() + card2.getIvl(), card2.getDue());
+
+        col.getSched().answerCard(card3, 3);
+        assertEquals(CARD_TYPE_REV, card3.getType());
+        assertEquals(QUEUE_TYPE_REV, card3.getQueue());
+        assertEquals(2, card3.getIvl());
+        assertEquals(col.getSched().getToday() + card3.getIvl(), card3.getDue());
+
+        // Answer good
+        col.getSched().answerCard(card1, 3);
+        assertEquals(CARD_TYPE_REV, card1.getType());
+        assertEquals(QUEUE_TYPE_REV, card1.getQueue());
+        assertEquals(11, card1.getIvl());
+        assertEquals(col.getSched().getToday() + card1.getIvl(), card1.getDue());
+
+        col.getSched().answerCard(card2, 3);
+        assertEquals(CARD_TYPE_REV, card2.getType());
+        assertEquals(QUEUE_TYPE_REV, card2.getQueue());
+        assertEquals(7, card2.getIvl());
+        assertEquals(col.getSched().getToday() + card2.getIvl(), card2.getDue());
+
+        col.getSched().answerCard(card3, 3);
+        assertEquals(CARD_TYPE_REV, card3.getType());
+        assertEquals(QUEUE_TYPE_REV, card3.getQueue());
+        assertEquals(5, card3.getIvl());
+        assertEquals(col.getSched().getToday() + card3.getIvl(), card3.getDue());
+    }
 }
