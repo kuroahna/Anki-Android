@@ -1763,9 +1763,18 @@ public class SchedV2 extends AbstractSched {
 
     public int _fuzzedIvl(int ivl) {
         Pair<Integer, Integer> minMax = _fuzzIvlRange(ivl);
-        // Anki's python uses random.randint(a, b) which returns x in [a, b] while the eq Random().nextInt(a, b)
-        // returns x in [0, b-a), hence the +1 diff with libanki
-        return (new Random().nextInt(minMax.second - minMax.first + 1)) + minMax.first;
+
+        int min_num_cards = Integer.MAX_VALUE;
+        int best_ivl = 1;
+        for (int check_ivl = minMax.first; check_ivl <= minMax.second; check_ivl++) {
+            int num_cards = getCol().getDb().queryScalar("select count() from cards where due = ? and queue = 2", getToday() + check_ivl);
+
+            if (num_cards <= min_num_cards) {
+                best_ivl = check_ivl;
+                min_num_cards = num_cards;
+            }
+        }
+        return best_ivl;
     }
 
 
