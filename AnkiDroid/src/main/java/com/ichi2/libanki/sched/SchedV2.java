@@ -1749,16 +1749,25 @@ public class SchedV2 extends AbstractSched {
 
         int ivl2 = _constrainedIvl(card.getIvl() * hardFactor, conf, hardMin, fuzz);
         if (ease == Consts.BUTTON_TWO) {
+            if (fuzz) {
+                ivl2 = _fuzzedIvl(ivl2);
+            }
             return ivl2;
         }
 
         int ivl3 = _constrainedIvl((card.getIvl() + delay / 2) * fct, conf, ivl2, fuzz);
         if (ease == Consts.BUTTON_THREE) {
+            if (fuzz) {
+                ivl3 = _fuzzedIvl(ivl3);
+            }
             return ivl3;
         }
 
-        return _constrainedIvl((
-                                    (card.getIvl() + delay) * fct * conf.getDouble("ease4")), conf, ivl3, fuzz);
+        int ivl4 = _constrainedIvl(((card.getIvl() + delay) * fct * conf.getDouble("ease4")), conf, ivl3, fuzz);
+        if (fuzz) {
+            ivl4 = _fuzzedIvl(ivl4);
+        }
+        return ivl4;
     }
 
     public int _fuzzedIvl(int ivl) {
@@ -1799,9 +1808,6 @@ public class SchedV2 extends AbstractSched {
 
     protected int _constrainedIvl(double ivl, @NonNull JSONObject conf, double prev, boolean fuzz) {
         int newIvl = (int) (ivl * conf.optDouble("ivlFct", 1));
-        if (fuzz) {
-            newIvl = _fuzzedIvl(newIvl);
-        }
 
         newIvl = (int) Math.max(Math.max(newIvl, prev + 1), 1);
         newIvl = Math.min(newIvl, conf.getInt("maxIvl"));
