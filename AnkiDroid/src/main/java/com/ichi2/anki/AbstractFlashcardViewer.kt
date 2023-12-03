@@ -1864,13 +1864,6 @@ abstract class AbstractFlashcardViewer :
             result.confirm()
             return true
         }
-
-        override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-            if (consoleMessage != null) {
-                Timber.i("ReviewerIntegrationTest: " + consoleMessage.message())
-            }
-            return super.onConsoleMessage(consoleMessage)
-        }
     }
 
     protected open fun closeReviewer(result: Int) {

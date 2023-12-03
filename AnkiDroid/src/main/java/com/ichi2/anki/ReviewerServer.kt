@@ -17,11 +17,7 @@
 package com.ichi2.anki
 
 import androidx.fragment.app.FragmentActivity
-import anki.frontend.SchedulingStatesWithContext
 import anki.frontend.SetSchedulingStatesRequest
-import anki.scheduler.SchedulingContext
-import anki.scheduler.SchedulingState
-import anki.scheduler.SchedulingStates
 import com.ichi2.anki.pages.AnkiServer
 import com.ichi2.utils.AssetHelper
 import timber.log.Timber
@@ -97,61 +93,24 @@ class ReviewerServer(activity: FragmentActivity, val mediaDir: String) : AnkiSer
     }
 
     private fun getSchedulingStatesWithContext(): ByteArray {
-        Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - begin")
-        Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current is " + reviewer().queueState?.states?.current)
-        if (reviewer().queueState?.states?.current?.customData == null) {
-            Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current.customData is null")
-        } else if (reviewer().queueState?.states?.current?.customData?.isEmpty() == true) {
-            Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current.customData is empty")
-        } else {
-            Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current.customData is " + reviewer().queueState?.states?.good?.customData)
-        }
         val state = reviewer().queueState ?: return ByteArray(0)
-        if (reviewer().queueState?.topCard != null) {
-            val card =
-                reviewer().getColUnsafe.getCard(reviewer().queueState!!.topCard.id).toBackendCard()
-            val statesWithContextWithCustomData = SchedulingStatesWithContext
-                .newBuilder()
-                .setContext(SchedulingContext.parseFrom(state.schedulingStatesWithContext().context.toByteArray()))
-                .setStates(
-                    SchedulingStates.newBuilder()
-                        .mergeFrom(state.schedulingStatesWithContext().states)
-                        .mergeCurrent(
-                            SchedulingState.newBuilder()
-                                .mergeFrom(state.schedulingStatesWithContext().states.current)
-                                .setCustomData(card.customData).build()
-                        )
-                )
-                .build()
-            if (statesWithContextWithCustomData.states.current.customData == null) {
-                Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current.customData is null")
-            } else if (statesWithContextWithCustomData.states.current.customData.isEmpty()) {
-                Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current.customData is empty")
-            } else {
-                Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.current.customData is " + statesWithContextWithCustomData.states.current.customData)
-            }
-            return statesWithContextWithCustomData.toByteArray()
-        }
-        return state.schedulingStatesWithContext().toByteArray()
+        val card = state.topCard.col.getCard(state.topCard.id).toBackendCard()
+        return state.schedulingStatesWithContext().toBuilder()
+            .mergeStates(
+                state.states.toBuilder().mergeCurrent(
+                    state.states.current.toBuilder().setCustomData(card.customData).build()
+                ).build()
+            )
+            .build()
+            .toByteArray()
     }
 
     private fun setSchedulingStates(bytes: ByteArray): ByteArray {
         val reviewer = reviewer()
         val state = reviewer.queueState ?: return ByteArray(0)
         val req = SetSchedulingStatesRequest.parseFrom(bytes)
-        Timber.i("ReviewerIntegrationTest::setSchedulingStates - begin")
-        Timber.i("ReviewerIntegrationTest::getSchedulingStatesWithContext - states.good is " + reviewer().queueState?.states?.good)
-        if (req.states.good.customData == null) {
-            Timber.i("ReviewerIntegrationTest::setSchedulingStates - states.good.customData is null")
-        } else if (req.states.good.customData.isEmpty()) {
-            Timber.i("ReviewerIntegrationTest::setSchedulingStates - states.good.customData is empty")
-        } else {
-            Timber.i("ReviewerIntegrationTest::setSchedulingStates - states.good.customData is " + req.states.good.customData)
-        }
         if (req.key == reviewer.customSchedulingKey) {
             state.states = req.states
-        } else {
-            Timber.i("ReviewerIntegrationTest::setSchedulingStates - customSchedulingKey does not match")
         }
         return ByteArray(0)
     }
