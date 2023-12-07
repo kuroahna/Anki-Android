@@ -17,6 +17,7 @@
 package com.ichi2.anki
 
 import com.ichi2.anki.CollectionManager.withCol
+import com.ichi2.libanki.Storage
 import com.ichi2.libanki.awaitBackupCompletion
 import com.ichi2.libanki.createBackup
 import kotlinx.coroutines.*
@@ -47,6 +48,10 @@ fun <Activity> Activity.importColpkg(colpkgPath: String) where Activity : AnkiAc
 }
 
 private suspend fun createBackup(force: Boolean) {
+    if (Storage.isInMemory) {
+        return
+    }
+
     withCol {
         // this two-step approach releases the backend lock after the initial copy
         createBackup(
